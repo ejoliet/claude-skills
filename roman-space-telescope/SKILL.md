@@ -4,12 +4,15 @@ description: >
   Nancy Grace Roman Space Telescope skill for Emmanuel at IPAC Caltech. Apply
   whenever a task involves Roman mission data products, the WFI instrument, ASDF
   pipeline outputs, the SOC file exchange system, romancal pipeline operations,
-  romanisim simulations, Roman IRSA/MAST data access, ObsCore queries for Roman
-  observations, EKS deployment of Roman SOC services, or any Roman-specific science
-  planning (HLWAS, HLTDS, GBTDS surveys). Trigger for: "roman", "roman wfi", "roman
-  soc", "roman pipeline", "romancal", "romanisim", "roman asdf", "roman file exchange",
-  "wfi filter", "roman survey", "roman calibration", "level 2 roman". Do NOT trigger
-  for generic ASDF/FITS questions unrelated to Roman.
+  romanisim/STPSF/Pandeia/STIPS simulations, Roman IRSA/MAST data access, ObsCore
+  queries for Roman observations, EKS deployment of Roman SOC services, Roman
+  science planning (HLWAS, HLTDS, GBTDS, GPS surveys), roman_photoz, rad (Roman
+  Attribute Dictionary), PySIAF aperture files, or Roman Research Nexus workflows.
+  Trigger for: "roman", "roman wfi", "roman soc", "roman pipeline", "romancal",
+  "romanisim", "roman asdf", "roman file exchange", "wfi filter", "roman survey",
+  "roman calibration", "level 2 roman", "pandeia roman", "stpsf roman", "stips roman",
+  "roman_photoz", "rad roman", "roman nexus", "roman notebooks". Do NOT trigger for
+  generic ASDF/FITS questions unrelated to Roman.
 ---
 
 # Roman Space Telescope Skill
@@ -55,6 +58,7 @@ and archive access patterns.
 | High Latitude Wide Area Survey | HLWAS | Weak lensing, galaxy clustering |
 | High Latitude Time Domain Survey | HLTDS | SNe Ia, transients |
 | Galactic Bulge Time Domain Survey | GBTDS | Microlensing, exoplanets |
+| Galactic Plane Survey | GPS | Stellar populations, variables, star formation |
 
 ---
 
@@ -539,14 +543,319 @@ ENV CRDS_SERVER_URL=https://roman-crds.stsci.edu
 
 | Resource | URL |
 |----------|-----|
+| Roman docs portal | https://roman-docs.stsci.edu |
 | Roman @ IPAC | https://roman.ipac.caltech.edu |
-| Roman @ STScI | https://roman.gsfc.nasa.gov / https://www.stsci.edu/roman |
+| Roman @ STScI | https://www.stsci.edu/roman |
 | roman_datamodels | https://roman-datamodels.readthedocs.io |
+| RAD schemas | https://rad.readthedocs.io |
 | romancal pipeline | https://roman-pipeline.readthedocs.io |
+| romancal notebooks | https://github.com/spacetelescope/romancal-notebooks |
+| roman_notebooks | https://github.com/spacetelescope/roman_notebooks |
+| roman-data-workshop | https://github.com/spacetelescope/roman-data-workshop |
 | romanisim | https://romanisim.readthedocs.io |
+| STPSF | https://stpsf.readthedocs.io |
+| Pandeia ETC | https://outerspace.stsci.edu/display/PEN |
+| STIPS | https://stips.readthedocs.io |
+| PySIAF | https://pysiaf.readthedocs.io |
+| roman_photoz | https://github.com/spacetelescope/roman_photoz |
+| Roman Research Nexus | https://nexus.stsci.edu |
 | CRDS Roman | https://roman-crds.stsci.edu |
 | ASDF Standard | https://asdf-standard.readthedocs.io |
-| WFI filters (STScI) | https://www.stsci.edu/roman/instrumentation/wfi |
+| WFI instrument page | https://roman-docs.stsci.edu/display/RDox/Wide+Field+Instrument |
+| soc_roman_tools (WFI imaging) | https://github.com/spacetelescope/soc_roman_tools |
+
+---
+
+## RAD — Roman Attribute Dictionary
+
+`rad` defines the canonical ASDF schema and shared metadata attributes used
+across all Roman pipeline software. It is the authoritative source for Roman
+datamodel structure.
+
+```bash
+pip install rad
+```
+
+```python
+# Inspect available schemas
+import rad
+import importlib.resources as pkg
+
+# Schemas live in rad/resources/schemas/roman_datamodels/
+# Key schemas: wfi_image, wfi_mode, wfi_science_raw, common, etc.
+
+# Validate a Roman ASDF file against the rad schema
+import asdf
+
+with asdf.open("r0000101_cal.asdf", custom_schema="rad:roman_datamodels/wfi_image-1.0.0") as af:
+    af.validate()   # raises asdf.ValidationError if non-conformant
+
+# Inspect what fields are defined for WFI image
+from rad.resources import schemas
+schema = schemas.load_schema("roman_datamodels/wfi_image-1.0.0")
+print(schema["properties"].keys())
+```
+
+- **ejoliet fork**: `ejoliet/rad` — used for SOC schema validation work
+- Upstream: https://github.com/spacetelescope/rad
+- Docs: https://rad.readthedocs.io
+
+---
+
+## Simulation Ecosystem
+
+### Pandeia — Exposure Time Calculator (ETC)
+
+```python
+# pip install pandeia.engine
+# Requires synphot data + Pandeia reference data
+import os
+os.environ["pandeia_refdata"] = "/data/pandeia_refdata"
+
+from pandeia.engine.perform_calculation import perform_calculation
+
+calc = {
+    "telescope": "roman",
+    "instrument": {
+        "instrument": "wfi",
+        "filter": "f129",
+        "mode": "imaging"
+    },
+    "scene": [{
+        "position": {"x_offset": 0, "y_offset": 0, "unit": "arcsec"},
+        "shape": {"geometry": "point"},
+        "spectrum": {
+            "normalization": {"type": "abmag", "norm_flux": 25.0, "norm_fluxunit": "abmag",
+                              "bandpass": "roman,wfi,f129"},
+            "sed": {"sed_type": "flat", "unit": "fnu"}
+        }
+    }],
+    "strategy": {
+        "detector_readout": {"ramp_param": {"ngroups": 6, "nints": 1}},
+    }
+}
+
+result = perform_calculation(calc)
+print(f"SNR = {result['scalar']['sn']:.1f}")
+print(f"Exposure time = {result['scalar']['exposure_time']:.1f} s")
+```
+
+- Pandeia docs: https://outerspace.stsci.edu/display/PEN
+- Reference data: download from STScI box link in Pandeia docs
+
+---
+
+### STPSF — Space Telescope Point Spread Functions
+
+STPSF (successor to WebbPSF) generates optical PSFs for Roman WFI detectors.
+
+```python
+# pip install stpsf
+# Requires: export STPSF_PATH=/data/stpsf_data
+import stpsf
+
+# Roman WFI PSF
+wfi = stpsf.RomanWFI()
+wfi.filter = "F129"
+wfi.detector = "SCA01"           # WFI01 in stpsf naming
+wfi.detector_position = (2048, 2048)   # pixel position on SCA
+
+# Compute PSF
+psf = wfi.calc_psf(
+    fov_arcsec=5.0,
+    oversample=4,
+    add_distortion=True,
+)
+
+# Access PSF image
+import matplotlib.pyplot as plt
+psf_array = psf[0].data            # oversampled PSF
+plt.imshow(psf_array, origin="lower", norm="log")
+
+# PSF FWHM estimate
+from astropy.modeling.models import Gaussian2D
+from astropy.modeling.fitting import LevMarLSQFitter
+# ... (fit Gaussian to measure FWHM)
+```
+
+- STPSF docs: https://stpsf.readthedocs.io
+- Data download: `stpsf.utils.download_stpsf_data()`
+
+---
+
+### STIPS — Scene-Level Image Simulator
+
+STIPS generates realistic scenes with many sources (galaxies + stars) for
+survey-level simulations. Complements romanisim (single-exposure level).
+
+```python
+# pip install stips
+import stips
+from stips.scene_module import SceneModule
+from stips.observation_module import ObservationModule
+
+obs_params = {
+    "instrument": "WFI",
+    "filters": ["F106"],
+    "detectors": 1,
+    "oversample": 1,
+    "pupil_mask": "",
+    "background": "avg",
+    "observations_id": 1,
+    "exptime": 300,
+    "offsets": [{"id": 1, "delay": 0, "move": False, "ra": 0, "dec": 0, "pa": 0}]
+}
+
+obs = ObservationModule(obs_params, ra=150.0, dec=2.2, pa=0.0,
+                        out_path="./output/", prefix="roman_sim")
+obs.nextObservation()
+
+src_file = obs.addCatalog("galaxy_catalog.fits")
+obs.addError()
+obs.finalize(mosaic=False)
+```
+
+- STIPS docs: https://stips.readthedocs.io
+- GitHub: https://github.com/spacetelescope/STScI-STIPS
+
+---
+
+### PySIAF — Science Instrument Aperture Files
+
+PySIAF provides access to Roman WFI aperture geometry, detector positions,
+and pixel-to-sky transforms for pointing and dithering calculations.
+
+```python
+# pip install pysiaf
+import pysiaf
+
+# Load Roman WFI SIAF
+siaf = pysiaf.Siaf("roman")
+
+# List all apertures
+for ap_name in siaf.apertures:
+    print(ap_name)
+
+# Get a specific SCA aperture
+sca01 = siaf["ROMAN_WFI_SCA01_FULL"]
+
+# Corner positions on sky (for a given V2V3 pointing)
+corners_tel = sca01.corners("tel")   # V2, V3 in arcsec
+
+# Pixel → sky (requires attitude)
+v2ref, v3ref = sca01.V2Ref, sca01.V3Ref
+print(f"SCA01 reference: V2={v2ref:.2f}, V3={v3ref:.2f} arcsec")
+```
+
+- PySIAF docs: https://pysiaf.readthedocs.io
+- GitHub: https://github.com/spacetelescope/pysiaf
+
+---
+
+## roman_photoz — Photometric Redshifts
+
+```bash
+# ejoliet fork: ejoliet/roman_photoz
+# upstream: https://github.com/spacetelescope/roman_photoz
+pip install roman_photoz
+```
+
+```python
+# roman_photoz wraps photo-z codes (EAZY, LePhare) for Roman band combinations
+from roman_photoz import PhotozRunner
+
+runner = PhotozRunner(
+    catalog="roman_catalog.fits",
+    filters=["F062", "F087", "F106", "F129", "F158", "F184", "W146"],
+    method="eazy",              # or "lephare"
+    output_dir="./photoz_output/",
+)
+runner.run()
+
+results = runner.load_results()
+# results["z_phot"] — best-fit photo-z
+# results["z_phot_l68"], results["z_phot_u68"] — 68% credible interval
+```
+
+- GitHub: https://github.com/spacetelescope/roman_photoz
+- Designed for HLWAS weak-lensing and galaxy clustering photo-z requirements
+
+---
+
+## Notebook Resources
+
+### roman_notebooks
+
+Official analysis notebooks for Roman data and tools, maintained by STScI.
+
+```bash
+git clone https://github.com/spacetelescope/roman_notebooks
+cd roman_notebooks
+pip install -r requirements.txt
+jupyter lab
+```
+
+Key notebooks:
+- `data_discovery/` — MAST archive query, exposure search
+- `data_products/` — opening L1/L2 ASDF files, reading metadata
+- `wcs/` — GWCS pixel↔sky transforms, WCS footprints
+- `simulation/` — romanisim, Pandeia ETC examples
+- `calibration/` — running romancal pipeline steps manually
+
+---
+
+### romancal-notebooks
+
+Pipeline-focused notebooks. Run pipeline steps interactively, inspect
+intermediate products, tune parameters.
+
+```bash
+git clone https://github.com/spacetelescope/romancal-notebooks
+```
+
+Key notebooks:
+- Individual step notebooks (`dq_init`, `jump`, `ramp_fit`, etc.)
+- Full L1→L2 pipeline walkthrough
+- Custom step parameter tuning
+
+---
+
+### Roman Research Nexus
+
+Cloud-based JupyterHub platform hosted by STScI for Roman data analysis.
+Provides pre-installed Roman software stack + access to MAST data without downloading.
+
+- URL: https://nexus.stsci.edu (requires STScI account)
+- Pre-installed: `roman_datamodels`, `romancal`, `romanisim`, `stpsf`, `pandeia`, `jdaviz`
+- Storage: persistent home directory; S3-backed MAST data access
+- Use instead of local installs for interactive exploration of real Roman data
+
+```python
+# On Roman Nexus — MAST data access without download
+from astroquery.mast import Observations
+import roman_datamodels as rdm
+
+# Files are accessible via s3:// URIs on the Nexus
+obs = Observations.query_criteria(obs_collection="ROMAN", ...)
+products = Observations.get_product_list(obs)
+uri = products["dataURI"][0]   # s3://mast:roman/...
+
+with rdm.open(uri) as dm:
+    data = dm.data
+```
+
+---
+
+### roman-data-workshop
+
+Workshop materials (slides + notebooks) for Roman data analysis training.
+
+```bash
+git clone https://github.com/spacetelescope/roman-data-workshop
+```
+
+Covers: data product overview, pipeline walkthrough, simulation hands-on,
+archive access, jdaviz visualization.
 
 ---
 

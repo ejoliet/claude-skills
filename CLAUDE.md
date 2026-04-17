@@ -17,6 +17,12 @@ Read this file at the start of every session.
 | `vo-explorer` | `vo-explorer/SKILL.md` | TAP/ADQL/IVOA/ObsCore/MOC/HiPS/pyvo VO queries, multi-archive |
 | `roman-space-telescope` | `roman-space-telescope/SKILL.md` | Roman WFI, SOC system, romancal, romanisim, ASDF data products |
 | `data-tools` | `data-tools/SKILL.md` | DuckDB, inspect parquet/CSV/FITS, schema sniff, quick data CLI |
+| `astropy` | `astropy/SKILL.md` | Coordinates, units, FITS, WCS, tables, cosmology, astropy.time |
+| `scientific-visualization` | `scientific-visualization/SKILL.md` | Publication figures, matplotlib/seaborn, journal formatting, colorblind palettes |
+| `paper-lookup` | `paper-lookup/SKILL.md` | arXiv, Semantic Scholar, OpenAlex, Crossref, PubMed, DOI lookup |
+| `zarr-python` | `zarr-python/SKILL.md` | Chunked N-D arrays, cloud (S3) storage, Dask/Xarray integration |
+| `statistical-analysis` | `statistical-analysis/SKILL.md` | Test selection, t-test, ANOVA, regression, effect sizes, power analysis |
+| `polars` | `polars/SKILL.md` | Fast DataFrames (1–100 GB), lazy evaluation, Arrow backend, pandas replacement |
 
 ---
 
@@ -98,6 +104,61 @@ cat context7/SKILL.md
 - DuckDB, pyarrow, Parquet metadata, FITS table exploration
 - **Do NOT trigger** for billion-row cross-match (vo-explorer), full pipeline (engineering), or science analysis (roman-space-telescope)
 
+### `astropy` — read when:
+- Coordinate system conversions (ICRS, Galactic, FK5, AltAz, etc.)
+- Physical units and quantities (`astropy.units`, `.to()`, equivalencies)
+- Reading, writing, or manipulating FITS files (`astropy.io.fits`)
+- Cosmological calculations (luminosity distance, lookback time, redshift)
+- Time handling with multiple scales/formats (UTC, TAI, TT, TDB, JD, MJD)
+- Catalog cross-matching with `SkyCoord.match_to_catalog_sky`
+- WCS pixel↔world transformations (`astropy.wcs`)
+- "astropy", "SkyCoord", "astropy.units", "FITS header", "Planck18"
+- **Do NOT trigger** for non-astropy VO protocol work (use vo-explorer), Roman-specific data (use roman-space-telescope)
+
+### `scientific-visualization` — read when:
+- Creating figures for papers, proposals, or presentations
+- Multi-panel figures with consistent journal-specific styling
+- Colorblind-safe palettes or grayscale-compatible plots
+- Publication DPI/format requirements (Nature 89 mm, PDF/EPS/TIFF)
+- Significance annotations, error bars, panel labels (A, B, C)
+- "plot for paper", "publication figure", "matplotlib style", "seaborn", "journal figure"
+- **Do NOT trigger** for quick exploratory plots or interactive dashboards
+
+### `paper-lookup` — read when:
+- Searching for papers by topic, author, DOI, PMID, or arXiv ID
+- "find papers on X", "look up this DOI", "papers citing Y"
+- Fetching open-access PDFs or full text
+- Citation graph / author metrics queries
+- Cross-referencing preprints (arXiv, bioRxiv) with published versions
+- Any mention of arXiv, Semantic Scholar, OpenAlex, Crossref, PubMed, Unpaywall
+- **Do NOT trigger** for non-scholarly web search
+
+### `zarr-python` — read when:
+- Storing or reading large N-D arrays with chunking and compression
+- Cloud-native array workflows (S3, GCS) with zarr stores
+- Dask + Zarr or Xarray + Zarr pipeline integration
+- Roman or ASDF-adjacent large array I/O
+- "zarr", "chunked array", "s3 zarr store", "da.from_zarr", "xr.open_zarr"
+- **Do NOT trigger** for HDF5-only workflows or FITS-only pipelines (use data-tools)
+
+### `statistical-analysis` — read when:
+- Choosing the right statistical test for a dataset
+- Checking normality, homogeneity of variance, or regression assumptions
+- t-tests, ANOVA, chi-square, Mann-Whitney, Kruskal-Wallis
+- Correlation (Pearson/Spearman), linear/logistic regression
+- Effect sizes (Cohen's d, η², r) and confidence intervals
+- Power analysis / sample-size planning
+- APA-format result reporting
+- **Do NOT trigger** for pure ML modeling tasks (use scikit-learn / pytorch)
+
+### `polars` — read when:
+- DataFrames that are slow in pandas or need lazy evaluation
+- ETL pipelines with 1–100 GB in-memory datasets
+- "polars", "LazyFrame", "pl.col", "scan_csv", "group_by().agg()"
+- Parquet I/O, Arrow-native processing, fast joins
+- Replacing pandas in a data pipeline
+- **Do NOT trigger** for out-of-core (>RAM) data — use dask or DuckDB instead
+
 ---
 
 ## Active Systems Context
@@ -162,7 +223,19 @@ claude-skills/
 │       └── publishing.md
 ├── data-tools/
 │   └── SKILL.md
-└── roman-space-telescope/
+├── roman-space-telescope/
+│   └── SKILL.md
+├── astropy/
+│   └── SKILL.md
+├── scientific-visualization/
+│   └── SKILL.md
+├── paper-lookup/
+│   └── SKILL.md
+├── zarr-python/
+│   └── SKILL.md
+├── statistical-analysis/
+│   └── SKILL.md
+└── polars/
     └── SKILL.md
 ```
 

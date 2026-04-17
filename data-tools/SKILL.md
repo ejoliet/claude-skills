@@ -318,9 +318,46 @@ python inspect.py 's3://bucket/prefix/*.parquet' --sql "SELECT status, COUNT(*) 
 
 ---
 
+## §8 — Harlequin: Terminal SQL IDE (DuckDB-native)
+
+Harlequin is a full SQL IDE for the terminal — autocomplete, schema browser,
+results pane, query history. Useful when interactive DuckDB sessions need more
+than one-liners.
+
+```bash
+pip install harlequin
+# or
+brew install harlequin
+
+# Open a DuckDB file
+harlequin my_database.ddb
+
+# In-memory (scratch mode)
+harlequin :memory:
+
+# Open a Parquet file directly
+harlequin -e "SELECT * FROM 'data.parquet' LIMIT 100"
+
+# Connect to MotherDuck (cloud DuckDB)
+harlequin md:
+```
+
+Key features:
+- Schema browser: expand tables/columns in the sidebar
+- Query history: up-arrow through previous queries
+- Results: scrollable, copyable, exportable
+- Multi-statement tabs
+- Works over SSH (pure-terminal, no GUI needed)
+
+> Use Harlequin when you need interactive exploration with autocomplete.
+> Use `duckdb` CLI or Python API when scripting or piping output.
+
+---
+
 ## References
 
 - DuckDB docs: https://duckdb.org/docs
+- Harlequin docs: https://harlequin.sh
 - pyarrow Parquet: https://arrow.apache.org/docs/python/parquet.html
 - astropy Table I/O: https://docs.astropy.org/en/stable/io/unified.html
 - awswrangler (S3 + pandas): https://aws-sdk-pandas.readthedocs.io

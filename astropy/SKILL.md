@@ -310,6 +310,90 @@ print(f"Found {len(cat1_matched)} matches")
 9. **Check WCS validity**: Verify WCS before using transformations
 10. **Cache frequently used values**: Expensive calculations (e.g., cosmological distances) can be cached
 
+## Companion Tools
+
+### pyia — Gaia Data in Python
+
+`pyia` wraps astropy Table with Gaia-specific conveniences: proper motion
+covariance matrices, parallax-based distances, and coordinate frame helpers.
+
+```python
+# pip install pyia
+from pyia import GaiaData
+from astropy.table import Table
+
+# Load from a pyvo/astroquery TAP result
+import pyvo as vo
+svc = vo.dal.TAPService("https://gea.esac.esa.int/tap-server/tap")
+result = svc.run_sync("""
+    SELECT source_id, ra, dec, parallax, pmra, pmdec,
+           phot_g_mean_mag, radial_velocity
+    FROM gaiadr3.gaia_source
+    WHERE parallax > 10
+    LIMIT 500
+""")
+g = GaiaData(result.to_table())
+
+# Distance from parallax (with proper error propagation)
+dist = g.get_ruwe()         # RUWE quality flag
+dist = g.distmod            # distance modulus
+
+# Full 6D phase space as SkyCoord
+from astropy.coordinates import Galactocentric
+c = g.get_skycoord(distance=g.distance)
+c_gal = c.galactocentric    # transform to Galactocentric frame
+
+# Covariance matrix for proper motions
+C = g.get_cov()   # (N, 6, 6) array
+```
+
+- GitHub: https://github.com/adrn/pyia
+- Gaia DR3 TAP: `https://gea.esac.esa.int/tap-server/tap`
+
+---
+
+### jdaviz — Interactive Spectral/Image Visualization
+
+`jdaviz` is the STScI/IPAC interactive visualization suite for JWST, Roman,
+and general astronomical data in JupyterLab. Supports spectra (Specviz, Specviz2D,
+Mosviz) and images (Imviz, Cubeviz).
+
+```python
+# pip install jdaviz
+import jdaviz
+
+# Image viewer (FITS or Roman ASDF)
+imviz = jdaviz.Imviz()
+imviz.load_data("image.fits")
+imviz.show()
+
+# Spectrum viewer
+specviz = jdaviz.Specviz()
+specviz.load_data("spectrum.fits", data_label="my_spectrum")
+specviz.show()
+
+# 2D spectrum (slit)
+specviz2d = jdaviz.Specviz2d()
+specviz2d.load_data("2d_spectrum.fits")
+specviz2d.show()
+
+# IFU cube (JWST MIRI MRS, NIRSpec IFU)
+cubeviz = jdaviz.Cubeviz()
+cubeviz.load_data("ifu_cube.fits")
+cubeviz.show()
+
+# Extract spectrum from region in Cubeviz
+spectrum = cubeviz.get_data("Spectrum (sum)", cls=Spectrum1D)
+```
+
+Jdaviz runs in JupyterLab. For non-notebook use, prefer `astropy.visualization`
+or `matplotlib` (use `scientific-visualization` skill).
+
+- jdaviz docs: https://jdaviz.readthedocs.io
+- GitHub: https://github.com/spacetelescope/jdaviz
+
+---
+
 ## Documentation and Resources
 
 - Official Astropy Documentation: https://docs.astropy.org/en/stable/

@@ -37,7 +37,8 @@ claude-skills/
 ├── paper-lookup/SKILL.md         ← arXiv, Semantic Scholar, DOI, OpenAlex
 ├── zarr-python/SKILL.md          ← chunked N-D arrays, S3, Dask/Xarray
 ├── statistical-analysis/SKILL.md ← test selection, effect sizes, power analysis
-└── polars/SKILL.md               ← fast DataFrames, lazy eval, Arrow backend
+├── polars/SKILL.md               ← fast DataFrames, lazy eval, Arrow backend
+└── lsdb/SKILL.md                 ← billion-row HATS catalog analysis, Dask spatial ops
 ```
 
 ---
@@ -261,6 +262,22 @@ Lightning-fast DataFrame library built on Apache Arrow. Lazy evaluation, automat
 | Airflow on EKS | REST API orchestration |
 
 **AWS:** `765894972596` / `us-east-1` · **Author:** `ejoliet` / IPAC Caltech
+
+---
+
+## Sources
+
+### `lsdb`
+
+Scalable astronomical catalog analysis using HATS (Hierarchically-partitioned Astronomical Time Series) format and LSDB + Dask. Handles billion-row spatial filtering, cross-matching, and lightcurve access for LSST/Rubin, ZTF, Gaia, and 2MASS at full survey scale — without loading data into memory.
+
+**Triggers:** lsdb, hats, HATS catalog, billion-row catalog, catalog cross-match at scale, dask spatial query, Rubin/LSST catalog, ZTF lightcurves, `s3://stpubdata/hats/`
+
+**Example prompts:**
+
+> "Cross-match the full Gaia DR3 HATS catalog against 2MASS PSC within 1 arcsec for all sources with G < 18 — use LSDB + Dask."
+
+> "Load the ZTF DR22 HATS source catalog, filter to a 2-degree cone around RA=150, Dec=2.2, and return the lightcurve for each matched object."
 
 ---
 

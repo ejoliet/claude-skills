@@ -768,6 +768,145 @@ helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stac
 
 ---
 
+## Additional Tooling (Starred / Validated)
+
+### aws-vault — AWS Credential Management
+
+```bash
+brew install --cask aws-vault
+
+# Store credentials (uses macOS Keychain)
+aws-vault add my-profile
+
+# Execute a command with temporary credentials (MFA-aware)
+aws-vault exec my-profile -- aws s3 ls
+
+# Open a browser console session
+aws-vault login my-profile
+
+# List stored profiles
+aws-vault list
+```
+
+Use instead of long-lived keys in `~/.aws/credentials`. Supports MFA tokens,
+assume-role chains, and session TTL. Pairs with IRSA on EKS.
+
+---
+
+### mountpoint-s3 — Mount S3 as a POSIX Filesystem
+
+```bash
+brew install --cask mountpoint-s3   # macOS
+# Linux: download from https://github.com/awslabs/mountpoint-s3/releases
+
+# Mount a bucket read-only
+mount-s3 my-bucket /mnt/my-bucket
+
+# With custom prefix (mount a "directory")
+mount-s3 my-bucket /mnt/catalogs --prefix catalogs/
+
+# Unmount
+umount /mnt/my-bucket
+```
+
+Useful for EKS pods that need POSIX access to S3 objects (e.g., reading HATS
+catalogs or large FITS files without streaming code). Backed by AWS's official
+FUSE driver — outperforms `s3fs` for sequential read.
+
+---
+
+### apprise — Unified Push Notifications
+
+Send alerts to Slack, PagerDuty, email, SNS, iOS (Bark), Telegram, and 70+
+other platforms from a single Python call. Complement to CloudWatch SNS alarms.
+
+```python
+# pip install apprise
+import apprise
+
+apobj = apprise.Apprise()
+
+# Add destinations (one or more)
+apobj.add("slack://token/channel")
+apobj.add("sns://AccessKeyID/SecretAccessKey/us-east-1/TopicARN")
+apobj.add("bark://DeviceKey/")       # iOS Bark push
+apobj.add("mailto://user:pass@gmail.com")
+
+# Send
+apobj.notify(
+    title="SOC File Delivery Alert",
+    body="5 files failed validation in the last hour",
+)
+```
+
+CLI usage:
+
+```bash
+apprise -b "Deployment complete" \
+    "slack://TOKEN/CHANNEL" \
+    "sns://KEY/SECRET/us-east-1/TOPIC_ARN"
+```
+
+---
+
+### datamodel-code-generator — Pydantic from OpenAPI/JSON Schema
+
+```bash
+pip install datamodel-code-generator
+
+# Generate Pydantic v2 models from OpenAPI spec
+datamodel-codegen \
+    --input api.yaml \
+    --input-file-type openapi \
+    --output models.py \
+    --target-python-version 3.11 \
+    --use-annotated \
+    --field-constraints
+
+# From JSON Schema
+datamodel-codegen \
+    --input schema.json \
+    --input-file-type jsonschema \
+    --output models.py
+
+# From URL (live spec)
+datamodel-codegen \
+    --url https://api.example.com/openapi.json \
+    --output models.py
+```
+
+Use to bootstrap Pydantic models for FastAPI/FastMCP when an OpenAPI or JSON
+Schema spec already exists. Avoids hand-writing dozens of model classes.
+
+---
+
+### astronomer/agents — Airflow AI Agent Tooling
+
+Astronomer's agents library adds MCP-aware AI workflows to Apache Airflow DAGs.
+Use when building agentic data pipelines that call LLMs or tools mid-DAG.
+
+```python
+# pip install astronomer-agents
+from astronomer.agents import AgentTask
+from airflow import DAG
+from datetime import datetime
+
+with DAG("ai_pipeline", start_date=datetime(2025, 1, 1)) as dag:
+    classify = AgentTask(
+        task_id="classify_files",
+        agent_config={
+            "model": "claude-sonnet-4-6",
+            "tools": ["mcp://roman-soc-monitor/list_recent_files"],
+        },
+        prompt="Classify the following Roman SOC files by priority: {{ ti.xcom_pull('list_files') }}",
+    )
+```
+
+- GitHub: https://github.com/astronomer/agents
+- Pairs with FastMCP server pattern — expose tools via MCP, call from DAG agents
+
+---
+
 ## References
 
 - `references/mcp-patterns.md` — FastMCP boilerplate, tool patterns, error handling

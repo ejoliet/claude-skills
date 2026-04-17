@@ -382,6 +382,29 @@
         "arrow backend",
         "polars expression"
       ]
+    },
+    {
+      "name": "lsdb",
+      "path": "lsdb/SKILL.md",
+      "references": [],
+      "description": "Scalable astronomical catalog analysis using HATS-partitioned format and LSDB + Dask. Handles billion-row spatial filtering, cross-matching, and lightcurve access for LSST/Rubin, ZTF, Gaia, and 2MASS at full survey scale.",
+      "triggers": [
+        "lsdb",
+        "hats",
+        "HATS catalog",
+        "hats-partitioned",
+        "astronomy-commons",
+        "billion-row catalog",
+        "catalog cross-match at scale",
+        "dask spatial query",
+        "lsst catalog",
+        "rubin catalog",
+        "ztf lightcurves",
+        "gaia full-sky",
+        "hats-cloudtests",
+        "stpubdata hats",
+        "data.lsdb.io"
+      ]
     }
   ]
 }

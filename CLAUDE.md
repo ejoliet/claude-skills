@@ -23,6 +23,7 @@ Read this file at the start of every session.
 | `zarr-python` | `zarr-python/SKILL.md` | Chunked N-D arrays, cloud (S3) storage, Dask/Xarray integration |
 | `statistical-analysis` | `statistical-analysis/SKILL.md` | Test selection, t-test, ANOVA, regression, effect sizes, power analysis |
 | `polars` | `polars/SKILL.md` | Fast DataFrames (1–100 GB), lazy evaluation, Arrow backend, pandas replacement |
+| `lsdb` | `lsdb/SKILL.md` | Billion-row HATS-partitioned catalog analysis (LSST/Rubin, ZTF, Gaia), Dask spatial ops |
 
 ---
 
@@ -158,6 +159,16 @@ cat context7/SKILL.md
 - Parquet I/O, Arrow-native processing, fast joins
 - Replacing pandas in a data pipeline
 - **Do NOT trigger** for out-of-core (>RAM) data — use dask or DuckDB instead
+
+### `lsdb` — read when:
+- Billion-row spatial catalog operations (LSST/Rubin, ZTF, Gaia, 2MASS at full scale)
+- "lsdb", "hats", "HATS catalog", "hats-partitioned", "astronomy-commons"
+- Cross-matching two full-sky catalogs (not a small TAP result)
+- Lightcurve / time-series access on survey-scale source catalogs
+- Loading a `s3://stpubdata/hats/` catalog
+- "catalog cross-match at scale", "dask spatial query", "billion-row catalog"
+- **Do NOT trigger** for small TAP/ADQL result sets (use vo-explorer), single-file
+  schema inspection (use data-tools), or Butler-based access on Rubin RSP
 
 ---
 

@@ -219,6 +219,106 @@ async def get_delivery_summary(delivery_id: str) -> dict:
 
 ---
 
+## SOC Monitor — Operational Runbook
+
+### Health check queries (run first when something looks wrong)
+
+```sql
+-- Overall status breakdown (last 24h)
+SELECT status, COUNT(*) AS n
+FROM soc_files
+WHERE received_at > NOW() - INTERVAL '24 hours'
+GROUP BY status ORDER BY n DESC;
+
+-- Stalled files: received but not validated after 30 min
+SELECT id, s3_key, delivery_id, received_at,
+       EXTRACT(EPOCH FROM (NOW() - received_at))/60 AS minutes_waiting
+FROM soc_files
+WHERE status = 'received'
+  AND received_at < NOW() - INTERVAL '30 minutes'
+ORDER BY received_at;
+
+-- Latest delivery summary
+SELECT delivery_id, product_level, COUNT(*) AS n_files,
+       SUM(CASE WHEN status='validated' THEN 1 ELSE 0 END) AS validated,
+       SUM(CASE WHEN status='failed'    THEN 1 ELSE 0 END) AS failed
+FROM soc_files
+WHERE delivery_id = (SELECT delivery_id FROM soc_files ORDER BY received_at DESC LIMIT 1)
+GROUP BY delivery_id, product_level ORDER BY product_level;
+
+-- Recent errors
+SELECT id, s3_key, error_message, received_at
+FROM soc_files
+WHERE status = 'failed'
+ORDER BY received_at DESC LIMIT 20;
+```
+
+### Triage decision tree
+
+```
+Files not arriving?
+├─ Check SQS queue depth (CloudWatch → SQS → soc-events)
+│   └─ Queue depth > 0 → messages arriving but processor not consuming
+│       → Check FastMCP pod logs: kubectl logs -n roman-soc -l app=soc-monitor
+│   └─ Queue depth = 0 → no S3 events firing
+│       → Check S3 bucket notification config: aws s3api get-bucket-notification-configuration
+│
+Files arriving but stuck in 'received'?
+├─ Check Aurora connectivity from pod:
+│   kubectl exec -it <pod> -n roman-soc -- python -c "import asyncpg; ..."
+├─ Check Aurora CPU/connections (CloudWatch → RDS)
+│   └─ High connections → check for connection pool leak; restart pod
+│
+Files failing validation?
+├─ Check error_message column for pattern
+│   └─ Checksum mismatch → re-delivery needed from SOC
+│   └─ Missing required keys → ASDF schema change; check romancal version
+│   └─ S3 access denied → check pod IAM role / IRSA binding
+│
+FastMCP pod crash-looping?
+├─ kubectl describe pod <pod> -n roman-soc
+├─ Check OOMKilled → increase memory limit in Helm values
+└─ Check DB secret rotation → update secret in AWS Secrets Manager + restart pod
+```
+
+### Recovery procedures
+
+```bash
+# Re-queue a specific failed file for reprocessing
+kubectl exec -it <soc-monitor-pod> -n roman-soc -- python -c "
+import asyncio, asyncpg
+async def requeue(file_id):
+    conn = await asyncpg.connect(dsn='...')
+    await conn.execute(\"UPDATE soc_files SET status='received', error_message=NULL WHERE id=\$1\", file_id)
+asyncio.run(requeue($FILE_ID))
+"
+
+# Force-restart the SOC monitor pod
+kubectl rollout restart deployment/soc-monitor -n roman-soc
+
+# Check IRSA role binding (if S3 access denied)
+kubectl describe sa soc-monitor -n roman-soc
+aws iam get-role --role-name roman-soc-monitor-role
+
+# Tail live pod logs
+kubectl logs -f -l app=soc-monitor -n roman-soc --tail=100
+```
+
+### SNS / alerting wiring
+
+```python
+# Expected CloudWatch alarms (defined in CloudFormation)
+alarms = {
+    "SOCQueueDepthHigh":     "SQS ApproximateNumberOfMessagesVisible > 100 for 5m",
+    "SOCValidationFailRate":  "% failed files > 5% over 15m window (custom metric)",
+    "SOCAuroraConnHigh":      "DatabaseConnections > 80% of max_connections",
+    "SOCPodRestartHigh":      "kube_pod_container_status_restarts_total > 2 in 10m",
+}
+# All route to SNS: roman-soc-alerts → email + optional Slack
+```
+
+---
+
 ## romancal Pipeline Operations
 
 ```python

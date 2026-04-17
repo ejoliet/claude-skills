@@ -10,12 +10,13 @@ Read this file at the start of every session.
 
 | Skill | Path | Trigger |
 |-------|------|---------|
-| `emmanuel-engineering` | `engineering/SKILL.md` | Architecture, AWS/EKS, Python, MCP, pipelines, astronomy |
+| `emmanuel-engineering` | `engineering/SKILL.md` | Architecture, AWS/EKS, Python, MCP, pipelines, astronomy, LocalStack, Grafana |
 | `emmanuel-markdown` | `markdown/SKILL.md` | Any `.md` doc, README, ADR, runbook, RFC, post-mortem |
 | `readme-driven-dev` | `readme-driven-dev/SKILL.md` | "RDD for X", "agent-ready README", bootstrapping a new tool |
 | `context7-docs-lookup` | `context7/SKILL.md` | Any coding task involving a named library or framework |
 | `vo-explorer` | `vo-explorer/SKILL.md` | TAP/ADQL/IVOA/ObsCore/MOC/HiPS/pyvo VO queries, multi-archive |
 | `roman-space-telescope` | `roman-space-telescope/SKILL.md` | Roman WFI, SOC system, romancal, romanisim, ASDF data products |
+| `data-tools` | `data-tools/SKILL.md` | DuckDB, inspect parquet/CSV/FITS, schema sniff, quick data CLI |
 
 ---
 
@@ -89,6 +90,14 @@ cat context7/SKILL.md
 - "How do I configure X", "what's the syntax for Y", version migration questions
 - **Trigger even when you think you know the answer** — training data may be stale
 
+### `data-tools` — read when:
+- Inspecting an unknown file (Parquet, CSV, JSON, FITS, ASDF)
+- "What columns does this have?", "schema of", "what's in this file", "quick look"
+- Ad-hoc SQL / GROUP BY against local or S3 files without a full pipeline
+- Building a small data inspection CLI
+- DuckDB, pyarrow, Parquet metadata, FITS table exploration
+- **Do NOT trigger** for billion-row cross-match (vo-explorer), full pipeline (engineering), or science analysis (roman-space-telescope)
+
 ---
 
 ## Active Systems Context
@@ -143,7 +152,16 @@ claude-skills/
 ├── vo-explorer/
 │   ├── SKILL.md
 │   └── references/
-│       └── vo-service-catalog.md
+│       ├── vo-service-catalog.md
+│       ├── protocols.md
+│       ├── formats.md
+│       ├── platforms.md
+│       ├── pitfalls.md
+│       ├── missions.md
+│       ├── science-tools.md
+│       └── publishing.md
+├── data-tools/
+│   └── SKILL.md
 └── roman-space-telescope/
     └── SKILL.md
 ```

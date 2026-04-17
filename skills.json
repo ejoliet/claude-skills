@@ -133,10 +133,43 @@
       ]
     },
     {
+      "name": "data-tools",
+      "path": "data-tools/SKILL.md",
+      "references": [],
+      "description": "Quick data inspection and CLI exploration using DuckDB, pandas, pyarrow, and astropy. Zero-setup schema sniffing, ad-hoc SQL, and S3 direct query for Parquet, CSV, JSON, and FITS files.",
+      "triggers": [
+        "duckdb",
+        "inspect parquet",
+        "schema of",
+        "what's in this file",
+        "what columns",
+        "quick look",
+        "profile data",
+        "count rows",
+        "head of file",
+        "sample rows",
+        "explore this dataset",
+        "data CLI",
+        "read parquet",
+        "check the schema",
+        "summarize data",
+        "parquet schema",
+        "fits table",
+        "data inspection"
+      ]
+    },
+    {
       "name": "vo-explorer",
       "path": "vo-explorer/SKILL.md",
       "references": [
-        "vo-explorer/references/vo-service-catalog.md"
+        "vo-explorer/references/vo-service-catalog.md",
+        "vo-explorer/references/protocols.md",
+        "vo-explorer/references/formats.md",
+        "vo-explorer/references/platforms.md",
+        "vo-explorer/references/pitfalls.md",
+        "vo-explorer/references/missions.md",
+        "vo-explorer/references/science-tools.md",
+        "vo-explorer/references/publishing.md"
       ],
       "description": "Virtual Observatory exploration skill for discovering and querying IVOA-compliant services (TAP, SIA, SCS, SSA, ObsCore, MOC, HiPS, DataLink) using pyvo and astroquery. Covers ADQL authoring, multi-archive cross-matching, VOTable I/O, and VO service quality validation.",
       "triggers": [

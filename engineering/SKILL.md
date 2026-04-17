@@ -233,6 +233,75 @@ manifest = Observations.download_products(products, productType="SCIENCE")
 
 ---
 
+## Quick Data Inspection (DuckDB)
+
+Use DuckDB as a zero-setup scratchpad to inspect Parquet, CSV, JSON, and S3 files
+before committing to a full pipeline. Faster than pandas for schema exploration.
+
+```python
+import duckdb
+
+con = duckdb.connect()   # in-memory; no file needed
+
+# Schema sniff — always start here
+con.sql("DESCRIBE SELECT * FROM 'data.parquet' LIMIT 0").show()
+con.sql("SUMMARIZE 'data.parquet'").show()     # stats: min/max/nulls per column
+
+# Quick filter + count
+con.sql("""
+    SELECT status, COUNT(*) AS n
+    FROM 'output/*.parquet'
+    GROUP BY status ORDER BY n DESC
+""").show()
+
+# Convert to pandas (then astropy if needed)
+df = con.sql("SELECT * FROM 'catalog.parquet' WHERE mag_g < 22").df()
+
+# Read CSV (auto-detects delimiter, header, types)
+con.sql("SELECT * FROM read_csv_auto('results.csv') LIMIT 10").show()
+
+# Read JSON
+con.sql("SELECT * FROM read_json_auto('events.json') LIMIT 5").show()
+```
+
+### S3 Direct Query (no download)
+
+```python
+import duckdb
+
+con = duckdb.connect()
+con.sql("INSTALL httpfs; LOAD httpfs;")
+con.sql("""
+    SET s3_region='us-east-1';
+    SET s3_access_key_id=?;
+    SET s3_secret_access_key=?;
+""")
+
+# Query a Parquet file directly from S3
+con.sql("""
+    SELECT detector, COUNT(*) AS n_files, SUM(file_size_bytes)/1e6 AS total_mb
+    FROM 's3://my-bucket/soc-files/*.parquet'
+    GROUP BY detector
+""").show()
+```
+
+### CLI one-liners
+
+```bash
+# Quick schema + row count from terminal
+duckdb -c "DESCRIBE SELECT * FROM 'data.parquet' LIMIT 0; SELECT COUNT(*) FROM 'data.parquet';"
+
+# Export filtered slice to CSV
+duckdb -c "COPY (SELECT * FROM 'big.parquet' WHERE status='failed') TO 'failed.csv' (HEADER);"
+```
+
+**When to use DuckDB vs pandas:**
+- Schema sniff, quick filter, GROUP BY → **DuckDB** (faster, no memory load)
+- Astropy Table interop, VO result manipulation → **pandas** (astropy `.to_pandas()`)
+- Billion-row catalogs with spatial ops → **LSDB + Dask** (see vo-explorer skill)
+
+---
+
 ## GitHub Search Guidance
 
 When asked to find patterns, examples, or reference implementations:
@@ -484,6 +553,205 @@ docker compose down
 # Tear down + wipe volumes
 docker compose down -v
 ```
+
+---
+
+## Local AWS Development (LocalStack)
+
+Use LocalStack to run Lambda, SQS, S3, and other AWS services locally before
+deploying to `us-east-1`. Eliminates round-trips to AWS during development.
+
+### docker-compose with LocalStack
+
+```yaml
+# docker-compose.localstack.yml
+version: "3.9"
+services:
+  localstack:
+    image: localstack/localstack:3
+    ports:
+      - "4566:4566"          # unified gateway
+    environment:
+      - SERVICES=s3,sqs,lambda,events,iam,logs
+      - DEBUG=1
+      - LAMBDA_EXECUTOR=docker   # run Lambdas in nested containers
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack-init:/etc/localstack/init/ready.d"  # init scripts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+```
+
+### AWS CLI against LocalStack
+
+```bash
+# Always use --endpoint-url or set AWS_ENDPOINT_URL
+export AWS_ENDPOINT_URL=http://localhost:4566
+export AWS_ACCESS_KEY_ID=test
+export AWS_SECRET_ACCESS_KEY=test
+export AWS_DEFAULT_REGION=us-east-1
+
+# S3
+aws s3 mb s3://my-local-bucket
+aws s3 cp data.parquet s3://my-local-bucket/
+
+# SQS
+aws sqs create-queue --queue-name test-queue
+aws sqs send-message --queue-url http://localhost:4566/000000000000/test-queue \
+    --message-body '{"key": "value"}'
+
+# Lambda: deploy and invoke
+aws lambda create-function \
+    --function-name my-func \
+    --runtime python3.11 \
+    --handler handler.lambda_handler \
+    --zip-file fileb://function.zip \
+    --role arn:aws:iam::000000000000:role/lambda-role
+aws lambda invoke --function-name my-func --payload '{}' response.json
+```
+
+### boto3 against LocalStack
+
+```python
+import boto3
+
+# Option 1: endpoint_url per client
+s3 = boto3.client("s3", endpoint_url="http://localhost:4566",
+                  region_name="us-east-1",
+                  aws_access_key_id="test",
+                  aws_secret_access_key="test")
+
+# Option 2: AWS_ENDPOINT_URL env var (boto3 >= 1.28, recommended)
+# Just set the env var; no code changes needed vs production boto3 usage
+import os
+os.environ["AWS_ENDPOINT_URL"] = "http://localhost:4566"
+s3 = boto3.client("s3")  # picks up endpoint automatically
+```
+
+### Init script pattern (auto-create resources on startup)
+
+```bash
+# localstack-init/01-setup.sh  (runs when LocalStack is ready)
+#!/bin/bash
+set -e
+awslocal s3 mb s3://soc-delivery-local
+awslocal sqs create-queue --queue-name soc-events
+awslocal s3api put-bucket-notification-configuration \
+    --bucket soc-delivery-local \
+    --notification-configuration '{
+        "QueueConfigurations": [{
+            "QueueArn": "arn:aws:sqs:us-east-1:000000000000:soc-events",
+            "Events": ["s3:ObjectCreated:*"]
+        }]
+    }'
+echo "LocalStack init complete"
+```
+
+### Key pitfalls
+- `LAMBDA_EXECUTOR=docker` requires Docker socket mount; use `local` for simpler functions
+- LocalStack free tier doesn't support all services (RDS, EKS) — use `localstack-pro` or mock at the DB layer instead
+- Use `awslocal` CLI wrapper (pip install awscli-local) to skip `--endpoint-url` every time
+- Terraform + LocalStack: set `skip_credentials_validation = true` and `skip_requesting_account_id = true`
+
+---
+
+## Grafana / Observability Dashboards
+
+Use Grafana when CloudWatch alone isn't enough — K8s metrics, cross-service
+dashboards, or sharing with non-AWS teams.
+
+### docker-compose addition for local Grafana
+
+```yaml
+  grafana:
+    image: grafana/grafana:10-ubuntu
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  grafana-data:
+```
+
+### Provisioning datasources (CloudWatch)
+
+```yaml
+# grafana/provisioning/datasources/cloudwatch.yaml
+apiVersion: 1
+datasources:
+  - name: CloudWatch
+    type: cloudwatch
+    jsonData:
+      defaultRegion: us-east-1
+      authType: default    # uses instance role / env vars / ~/.aws
+    isDefault: true
+```
+
+### Key dashboard panels for IPAC services
+
+```json
+// Jenkins CPU panel (CloudWatch metric)
+{
+  "type": "timeseries",
+  "title": "Jenkins Master CPU",
+  "targets": [{
+    "datasource": "CloudWatch",
+    "namespace": "AWS/EC2",
+    "metricName": "CPUUtilization",
+    "dimensions": { "InstanceId": "${jenkins_instance_id}" },
+    "statistic": "Average",
+    "period": 300
+  }],
+  "thresholds": [{"value": 40, "color": "red"}]
+}
+```
+
+```python
+# Programmatic dashboard via Grafana API
+import httpx
+
+GRAFANA = "http://localhost:3000"
+HEADERS = {"Authorization": "Bearer <api-key>", "Content-Type": "application/json"}
+
+# Push a dashboard JSON
+resp = httpx.post(f"{GRAFANA}/api/dashboards/db",
+                  headers=HEADERS,
+                  json={"dashboard": dashboard_dict, "overwrite": True})
+
+# List dashboards
+dashboards = httpx.get(f"{GRAFANA}/api/search", headers=HEADERS).json()
+```
+
+### Prometheus + Grafana for EKS (kube-prometheus-stack)
+
+```bash
+# Install via Helm (Emmanuel's standard K8s stack)
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack \
+    --namespace monitoring --create-namespace \
+    --set grafana.adminPassword=admin \
+    --set prometheus.prometheusSpec.retention=15d
+```
+
+### SOC monitor dashboard checklist
+
+| Panel | Metric source | Alert threshold |
+|---|---|---|
+| Files received / hour | Aurora PG: `soc_files` | < 1/hr during expected delivery |
+| Validation failure rate | Aurora PG: `status='failed'` | > 5% → page |
+| SQS queue depth | CloudWatch SQS | > 100 messages |
+| FastMCP pod restarts | Kubernetes | > 2 in 10 min |
+| Aurora connections | CloudWatch RDS | > 80% of max |
 
 ---
 

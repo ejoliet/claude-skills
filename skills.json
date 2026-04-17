@@ -131,6 +131,75 @@
         "framework",
         "any coding task"
       ]
+    },
+    {
+      "name": "vo-explorer",
+      "path": "vo-explorer/SKILL.md",
+      "references": [
+        "vo-explorer/references/vo-service-catalog.md"
+      ],
+      "description": "Virtual Observatory exploration skill for discovering and querying IVOA-compliant services (TAP, SIA, SCS, SSA, ObsCore, MOC, HiPS, DataLink) using pyvo and astroquery. Covers ADQL authoring, multi-archive cross-matching, VOTable I/O, and VO service quality validation.",
+      "triggers": [
+        "vo explorer",
+        "virtual observatory",
+        "ivoa",
+        "tap",
+        "tap query",
+        "adql",
+        "cone search",
+        "scs",
+        "sia",
+        "ssa",
+        "obscore",
+        "votable",
+        "hips",
+        "moc",
+        "datalink",
+        "registry search",
+        "vo service",
+        "service discovery",
+        "multi-archive",
+        "cross-match",
+        "vizier",
+        "simbad",
+        "ned tap",
+        "gaia tap",
+        "irsa tap",
+        "mast tap",
+        "aladin"
+      ]
+    },
+    {
+      "name": "roman-space-telescope",
+      "path": "roman-space-telescope/SKILL.md",
+      "references": [],
+      "description": "Nancy Grace Roman Space Telescope skill for IPAC Caltech. Covers WFI instrument, ASDF data products (L0–L3), roman_datamodels, romancal pipeline, romanisim simulations, SOC file exchange system (FastMCP + Aurora PG + EKS), CRDS reference files, MAST/IRSA archive access, and GWCS coordinate handling.",
+      "triggers": [
+        "roman",
+        "roman space telescope",
+        "roman wfi",
+        "roman soc",
+        "roman pipeline",
+        "romancal",
+        "romanisim",
+        "roman asdf",
+        "roman file exchange",
+        "roman calibration",
+        "wfi filter",
+        "wfi detector",
+        "roman survey",
+        "hlwas",
+        "hltds",
+        "gbtds",
+        "roman level 2",
+        "roman level 1",
+        "roman datamodels",
+        "roman crds",
+        "roman gwcs",
+        "roman obscore",
+        "soc files table",
+        "soc delivery"
+      ]
     }
   ]
 }

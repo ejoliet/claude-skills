@@ -14,6 +14,8 @@ Read this file at the start of every session.
 | `emmanuel-markdown` | `markdown/SKILL.md` | Any `.md` doc, README, ADR, runbook, RFC, post-mortem |
 | `readme-driven-dev` | `readme-driven-dev/SKILL.md` | "RDD for X", "agent-ready README", bootstrapping a new tool |
 | `context7-docs-lookup` | `context7/SKILL.md` | Any coding task involving a named library or framework |
+| `vo-explorer` | `vo-explorer/SKILL.md` | TAP/ADQL/IVOA/ObsCore/MOC/HiPS/pyvo VO queries, multi-archive |
+| `roman-space-telescope` | `roman-space-telescope/SKILL.md` | Roman WFI, SOC system, romancal, romanisim, ASDF data products |
 
 ---
 
@@ -58,6 +60,28 @@ cat context7/SKILL.md
 - Bootstrapping a new tool, CLI, service, or library with no existing spec
 - Any request where README should also be the build blueprint
 - **Do NOT trigger** for post-hoc docs of already-built code, ADRs, runbooks
+
+### `vo-explorer` — read when:
+- Any task involving IVOA-compliant services, TAP, SIA, SCS, SSA, ObsCore, DataLink
+- Writing ADQL queries or debugging ADQL syntax
+- VO registry service discovery (pyvo `registry.search`)
+- Cross-matching catalogs across archives (IRSA, MAST, VizieR, Gaia, NED)
+- MOC / HiPS / Aladin-related spatial coverage work
+- VOTable parsing, pyvo result handling
+- "VO service", "cone search", "tap query", "multi-archive", "cross-match via TAP"
+- **Do NOT trigger** for non-VO REST API queries or astroquery calls that don't involve VO protocols
+
+### `roman-space-telescope` — read when:
+- Any Roman Space Telescope data, pipeline, simulation, or SOC work
+- Reading/writing Roman ASDF files with `roman_datamodels`
+- Running or extending the `romancal` calibration pipeline
+- Generating simulated WFI exposures with `romanisim`
+- SOC file exchange monitor (EKS + FastMCP + Aurora PG)
+- Roman WFI filters, detectors, survey programs (HLWAS, HLTDS, GBTDS)
+- Roman GWCS coordinate transforms
+- Roman MAST / IRSA archive access
+- "roman", "roman wfi", "roman soc", "roman pipeline", "romancal", "romanisim"
+- **Do NOT trigger** for generic ASDF/FITS questions unrelated to Roman
 
 ### `context7-docs-lookup` — read when:
 - Any coding task, system design, or technical question involving a named library
@@ -114,7 +138,13 @@ claude-skills/
 │   └── references/
 │       ├── rdd-template.md
 │       └── examples.md
-└── context7/
+├── context7/
+│   └── SKILL.md
+├── vo-explorer/
+│   ├── SKILL.md
+│   └── references/
+│       └── vo-service-catalog.md
+└── roman-space-telescope/
     └── SKILL.md
 ```
 

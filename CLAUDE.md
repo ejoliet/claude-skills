@@ -24,6 +24,16 @@ Read this file at the start of every session.
 | `statistical-analysis` | `statistical-analysis/SKILL.md` | Test selection, t-test, ANOVA, regression, effect sizes, power analysis |
 | `polars` | `polars/SKILL.md` | Fast DataFrames (1–100 GB), lazy evaluation, Arrow backend, pandas replacement |
 | `lsdb` | `lsdb/SKILL.md` | Billion-row HATS-partitioned catalog analysis (LSST/Rubin, ZTF, Gaia), Dask spatial ops |
+| `mcp-builder` | `mcp-builder/SKILL.md` | Build/extend MCP servers (FastMCP, TypeScript SDK), tool schema, annotations, evaluations |
+| `tdd` | `tdd/SKILL.md` | Red-green-refactor with tracer bullets, behavior-based tests, pytest/vitest patterns |
+| `qa` | `qa/SKILL.md` | Pre-push dual-pass QA (diff + file), P1/P2/P3 severity findings, security checks |
+| `think-first` | `think-first/SKILL.md` | Strategic challenge coach: prompt for thinking, surface assumptions, devil's advocate |
+| `agent-orchestration` | `agent-orchestration/SKILL.md` | Multi-agent TeammateTool/Task system, swarm patterns, pipeline deps, fan-out |
+| `git-workflow` | `git-workflow/SKILL.md` | Conventional Commits, safe staging, pre-push validation, worktrees, release automation |
+| `changelog-generator` | `changelog-generator/SKILL.md` | Conventional Commits parsing, semver bump, Keep-a-Changelog rendering, CI lint |
+| `codebase-onboarding` | `codebase-onboarding/SKILL.md` | Onboarding docs for new team members, codebase analysis, audience-aware setup guides |
+| `senior-prompt-engineer` | `senior-prompt-engineer/SKILL.md` | Prompt optimization, LLM evaluation, RAG quality, agentic system design, few-shot |
+| `senior-qa` | `senior-qa/SKILL.md` | React/Next.js Jest+RTL tests, Istanbul coverage gaps, Playwright E2E scaffolding |
 
 ---
 
@@ -170,6 +180,81 @@ cat context7/SKILL.md
 - **Do NOT trigger** for small TAP/ADQL result sets (use vo-explorer), single-file
   schema inspection (use data-tools), or Butler-based access on Rubin RSP
 
+### `mcp-builder` — read when:
+- Building a new MCP server (FastMCP, Python SDK, TypeScript SDK)
+- Adding or redesigning tools/resources/prompts on an existing MCP server
+- Designing tool input/output schemas, annotations, or error message patterns
+- Writing evaluations for an MCP server
+- "build mcp", "mcp tool", "mcp schema", "mcp server", "fastmcp tool", "mcp inspector"
+- **Do NOT trigger** for general FastAPI/REST API work (use emmanuel-engineering)
+
+### `tdd` — read when:
+- Starting any new feature, function, or endpoint (write tests first)
+- Fixing a bug and needing a regression test
+- Refactoring an existing module with a safety net
+- "tdd", "test-driven", "write tests first", "red green refactor", "tracer bullet"
+- "pytest", "vitest", "failing test", "write a test for X"
+- **Do NOT trigger** for post-hoc test writing on already-implemented code (use qa instead)
+
+### `qa` — read when:
+- After implementing a feature or fix, before pushing or opening a PR
+- "review my changes", "check my code", "QA this", "pre-push review", "find issues"
+- "review before merge", "security review", "check for bugs"
+- **Do NOT trigger** for architecture design (use think-first or emmanuel-engineering)
+
+### `think-first` — read when:
+- User asks strategic, architectural, or high-stakes design questions
+- "should I...", "how should I approach...", "what's the best way to..."
+- User explicitly requests challenge: "poke holes", "devil's advocate", "stress test", "what am I missing"
+- **Do NOT trigger** for factual lookups, debugging, or quick tactical questions
+
+### `agent-orchestration` — read when:
+- Coordinating multiple Claude agents in parallel or pipeline
+- "swarm", "multi-agent", "orchestrate agents", "teammate tool", "spawn agent"
+- "parallel agents", "fan-out", "agent pipeline", "task dependency"
+- Divide-and-conquer patterns for large code review, ingestion, or processing jobs
+- **Do NOT trigger** for single-agent tasks or simple tool use
+
+### `git-workflow` — read when:
+- Creating a commit (Conventional Commit format)
+- Pre-push validation, security review of staged changes
+- "git workflow", "commit message", "conventional commit", "branching strategy"
+- "git worktree", "release branch", "squash commits", "git rebase"
+- **Do NOT trigger** for general shell scripting or CI/CD pipeline design (use emmanuel-engineering)
+
+### `changelog-generator` — read when:
+- Generating release notes or CHANGELOG.md entries from git history
+- Linting or enforcing Conventional Commit message format on a branch or PR
+- Determining semantic version bump (major/minor/patch) from a commit range
+- CI jobs that auto-generate draft release notes on tag push
+- Monorepo package-scoped changelog filtering
+- "generate changelog", "release notes", "conventional commit lint", "semver bump", "keep a changelog"
+- **Do NOT trigger** for writing individual commit messages (use git-workflow)
+
+### `codebase-onboarding` — read when:
+- Generating an onboarding document for a new engineer, contractor, or tech lead
+- Analyzing an unfamiliar repository to produce setup, architecture, and contribution docs
+- Rebuilding stale project docs after a major refactor
+- Producing audience-specific documentation (junior / senior / contractor)
+- "onboard new member", "project handoff", "create onboarding doc", "document this repo", "setup guide"
+- **Do NOT trigger** for routine README updates or API reference docs (use emmanuel-markdown)
+
+### `senior-prompt-engineer` — read when:
+- Optimizing or analyzing an existing prompt for token efficiency or clarity
+- Designing few-shot examples, chain-of-thought templates, or structured output schemas
+- Evaluating RAG retrieval quality (context relevance, answer faithfulness)
+- Validating or visualizing an agentic system (ReAct, Plan-Execute, Tool Use)
+- "optimize prompt", "prompt template", "few-shot", "chain-of-thought", "RAG evaluation", "build agent", "LLM eval", "token cost", "structured output"
+- **Do NOT trigger** for Claude Code agent orchestration (use agent-orchestration) or MCP tool design (use mcp-builder)
+
+### `senior-qa` — read when:
+- Generating Jest + React Testing Library test stubs for React/Next.js components
+- Analyzing Istanbul/LCOV coverage reports to find uncovered branches or lines
+- Scaffolding Playwright E2E tests from Next.js pages or App Router routes
+- Setting up MSW mocks, test fixtures, or Playwright Page Object Models
+- "generate tests", "write unit tests", "analyze coverage", "scaffold E2E", "set up Playwright", "configure Jest", "improve test quality"
+- **Do NOT trigger** for backend Python testing (use tdd) or pre-push code review (use qa)
+
 ---
 
 ## Active Systems Context
@@ -246,8 +331,58 @@ claude-skills/
 │   └── SKILL.md
 ├── statistical-analysis/
 │   └── SKILL.md
-└── polars/
-    └── SKILL.md
+├── polars/
+│   └── SKILL.md
+├── mcp-builder/
+│   └── SKILL.md
+├── tdd/
+│   └── SKILL.md
+├── qa/
+│   └── SKILL.md
+├── think-first/
+│   └── SKILL.md
+├── agent-orchestration/
+│   └── SKILL.md
+├── git-workflow/
+│   └── SKILL.md
+├── changelog-generator/
+│   ├── SKILL.md
+│   ├── README.md
+│   ├── references/
+│   │   ├── changelog-formatting-guide.md
+│   │   ├── ci-integration.md
+│   │   └── monorepo-strategy.md
+│   └── scripts/
+│       ├── generate_changelog.py
+│       └── commit_linter.py
+├── codebase-onboarding/
+│   ├── SKILL.md
+│   ├── references/
+│   │   ├── onboarding-template.md
+│   │   └── output-format-templates.md
+│   └── scripts/
+│       └── codebase_analyzer.py
+├── senior-prompt-engineer/
+│   ├── SKILL.md
+│   ├── references/
+│   │   ├── prompt_engineering_patterns.md
+│   │   ├── llm_evaluation_frameworks.md
+│   │   └── agentic_system_design.md
+│   └── scripts/
+│       ├── prompt_optimizer.py
+│       ├── rag_evaluator.py
+│       └── agent_orchestrator.py
+└── senior-qa/
+    ├── SKILL.md
+    ├── README.md
+    ├── references/
+    │   ├── testing_strategies.md
+    │   ├── test_automation_patterns.md
+    │   └── qa_best_practices.md
+    └── scripts/
+        ├── test_suite_generator.py
+        ├── coverage_analyzer.py
+        └── e2e_test_scaffolder.py
 ```
 
 ---

@@ -635,6 +635,34 @@
       ]
     },
     {
+      "name": "claude-md-architect",
+      "path": "claude-md-architect/SKILL.md",
+      "references": [],
+      "description": "Generates or upgrades a CLAUDE.md (or AGENTS.md, .cursor/rules, .github/copilot-instructions.md) for any software project, optimized for token-efficient agent guidance. Invariant-first, inference-aware, burn-logged, greppable, and token-lean.",
+      "metadata": {
+        "source": "https://gist.githubusercontent.com/ejoliet/b5596a9ca6b76f5b3fe2b0817c18656f/raw/7b8cd31fb721f9b50dbdd7af603300d424ac24dc/SKILL.md",
+        "skill-author": "ejoliet"
+      },
+      "triggers": [
+        "create a CLAUDE.md",
+        "write CLAUDE.md",
+        "update my CLAUDE.md",
+        "add to CLAUDE.md",
+        "agent rules for this repo",
+        "what should go in CLAUDE.md",
+        "AGENTS.md",
+        "cursor rules",
+        "copilot instructions",
+        "memory file for this project",
+        "bootstrap agent guidance",
+        "review my CLAUDE.md",
+        "upgrade CLAUDE.md",
+        "audit CLAUDE.md",
+        "claude.md for",
+        "agent memory file"
+      ]
+    },
+    {
       "name": "senior-qa",
       "path": "senior-qa/SKILL.md",
       "references": [

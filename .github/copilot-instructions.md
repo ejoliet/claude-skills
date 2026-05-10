@@ -24,6 +24,5 @@ This repository stores Claude Code skills. Keep changes focused, minimal, and co
 
 ## Boundaries
 
-- Do not modify files under `.github/agents/`.
 - Do not introduce credentials, tokens, or private data.
 - Do not create broad project-wide rewrites unless explicitly requested.

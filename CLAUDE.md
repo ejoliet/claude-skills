@@ -34,6 +34,7 @@ Read this file at the start of every session.
 | `codebase-onboarding` | `codebase-onboarding/SKILL.md` | Onboarding docs for new team members, codebase analysis, audience-aware setup guides |
 | `senior-prompt-engineer` | `senior-prompt-engineer/SKILL.md` | Prompt optimization, LLM evaluation, RAG quality, agentic system design, few-shot |
 | `senior-qa` | `senior-qa/SKILL.md` | React/Next.js Jest+RTL tests, Istanbul coverage gaps, Playwright E2E scaffolding |
+| `claude-md-architect` | `claude-md-architect/SKILL.md` | Create/upgrade/audit CLAUDE.md, AGENTS.md, Cursor rules, Copilot instructions |
 
 ---
 
@@ -255,6 +256,15 @@ cat context7/SKILL.md
 - "generate tests", "write unit tests", "analyze coverage", "scaffold E2E", "set up Playwright", "configure Jest", "improve test quality"
 - **Do NOT trigger** for backend Python testing (use tdd) or pre-push code review (use qa)
 
+### `claude-md-architect` — read when:
+- Creating a new CLAUDE.md, AGENTS.md, `.cursor/rules`, or `.github/copilot-instructions.md`
+- Upgrading or auditing an existing CLAUDE.md for bloat, staleness, or missing invariants
+- "create a CLAUDE.md", "write CLAUDE.md", "update my CLAUDE.md", "add to CLAUDE.md"
+- "agent rules for this repo", "what should go in CLAUDE.md", "memory file for this project"
+- "AGENTS.md", "cursor rules", "copilot instructions", "bootstrap agent guidance"
+- Any request to review or improve project-level agent-facing guidance
+- **Do NOT trigger** for general README work (→ `readme-driven-dev`) or end-user docs (→ `emmanuel-markdown`)
+
 ---
 
 ## Active Systems Context
@@ -383,6 +393,8 @@ claude-skills/
         ├── test_suite_generator.py
         ├── coverage_analyzer.py
         └── e2e_test_scaffolder.py
+└── claude-md-architect/
+    └── SKILL.md
 ```
 
 ---
